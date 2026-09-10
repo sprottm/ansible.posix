@@ -154,7 +154,6 @@
     state: mounted
     fstype: None
     opts: bind
-    backup: false
   when: ansible_system == 'Linux'
   register: bind_result_linux
 
@@ -164,7 +163,6 @@
     name: '{{ output_dir }}/mount_dest'
     state: mounted
     fstype: nullfs
-    backup: false
   when: ansible_system == 'FreeBSD'
   register: bind_result_freebsd
 
@@ -189,6 +187,7 @@
     state: mounted
     fstype: None
     opts: bind
+    backup: false
   when: ansible_system == 'Linux'
   register: bind_result_linux
 
@@ -198,6 +197,7 @@
     name: '{{ output_dir }}/mount_dest'
     state: mounted
     fstype: nullfs
+    backup: false
   when: ansible_system == 'FreeBSD'
   register: bind_result_freebsd
 
@@ -234,6 +234,7 @@
     state: mounted
     fstype: nullfs
     opts: ro
+    backup: true
   when: ansible_system == 'FreeBSD'
   register: bind_result_freebsd
   check_mode: true
@@ -282,6 +283,7 @@
     state: mounted
     fstype: nullfs
     opts: ro
+    backup: true
   when: ansible_system == 'FreeBSD'
   register: bind_result_freebsd
 
