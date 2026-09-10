@@ -210,7 +210,8 @@
 - name: Verify that the backup return value is empty when backups are not active
   ansible.builtin.assert:
     that:
-      - (bind_result_linux.backup_file == "") or (bind_result_freebsd.backup_file == "")
+      - (ansible_system == 'FreeBSD') or (bind_result_linux.backup_file == "")
+      - (ansible_system == 'Linux') or (bind_result_freebsd.backup_file == "")
   when: ansible_system in ('FreeBSD', 'Linux')
 
 # remount check mode
@@ -258,7 +259,8 @@
 - name: Verify that the backup return value is empty when checkmode is active
   ansible.builtin.assert:
     that:
-      - (bind_result_linux.backup_file == "") or (bind_result_freebsd.backup_file == "")
+      - (ansible_system == 'FreeBSD') or (bind_result_linux.backup_file == "")
+      - (ansible_system == 'Linux') or (bind_result_freebsd.backup_file == "")
   when: ansible_system in ('FreeBSD', 'Linux')
 
 # remount
@@ -301,7 +303,8 @@
 - name: Verify that the backup return value is not empty when backups are enabled
   ansible.builtin.assert:
     that:
-      - (bind_result_linux.backup_file | length > 0) or (bind_result_freebsd.backup_file | length > 0)
+      - (ansible_system == 'FreeBSD') or (bind_result_linux.backup_file | length > 0)
+      - (ansible_system == 'Linux') or (bind_result_freebsd.backup_file | length > 0)
   when: ansible_system in ('FreeBSD', 'Linux')
 
 # unmount check mode
