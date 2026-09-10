@@ -154,6 +154,7 @@
     state: mounted
     fstype: None
     opts: bind
+    backup: false
   when: ansible_system == 'Linux'
   register: bind_result_linux
 
@@ -163,6 +164,7 @@
     name: '{{ output_dir }}/mount_dest'
     state: mounted
     fstype: nullfs
+    backup: false
   when: ansible_system == 'FreeBSD'
   register: bind_result_freebsd
 
@@ -205,6 +207,12 @@
       - (ansible_system == 'Linux' and not bind_result_linux['changed']) or (ansible_system == 'FreeBSD' and not bind_result_freebsd['changed'])
   when: ansible_system in ('FreeBSD', 'Linux')
 
+- name: Verify that the backup return value is empty when backups are not active
+  ansible.builtin.assert:
+    that:
+      - (bind_result_linux.backup_file == "") or (bind_result_freebsd.backup_file == "")
+  when: ansible_system in ('FreeBSD', 'Linux')
+
 # remount check mode
 - name: Remount filesystem with different opts (Linux) (check mode)
   ansible.posix.mount:
@@ -213,6 +221,7 @@
     state: mounted
     fstype: None
     opts: bind,ro
+    backup: true
   when: ansible_system == 'Linux'
   register: bind_result_linux
   check_mode: true
@@ -246,6 +255,12 @@
     freebsd_and_changed: "{{ ansible_system == 'FreeBSD' and bind_result_freebsd['changed'] }}"
   when: ansible_system in ('FreeBSD', 'Linux')
 
+- name: Verify that the backup return value is empty when checkmode is active
+  ansible.builtin.assert:
+    that:
+      - (bind_result_linux.backup_file == "") or (bind_result_freebsd.backup_file == "")
+  when: ansible_system in ('FreeBSD', 'Linux')
+
 # remount
 - name: Remount filesystem with different opts (Linux)
   ansible.posix.mount:
@@ -254,6 +269,7 @@
     state: mounted
     fstype: None
     opts: bind,ro
+    backup: true
   when: ansible_system == 'Linux'
   register: bind_result_linux
 
@@ -282,11 +298,18 @@
       - 1 == remount_options.stdout_lines | length
   when: ansible_system in ('FreeBSD', 'Linux')
 
+- name: Verify that the backup return value is not empty when backups are enabled
+  ansible.builtin.assert:
+    that:
+      - (bind_result_linux.backup_file | length > 0) or (bind_result_freebsd.backup_file | length > 0)
+  when: ansible_system in ('FreeBSD', 'Linux')
+
 # unmount check mode
 - name: Unmount the bind mount (check mode)
   ansible.posix.mount:
     name: '{{ output_dir }}/mount_dest'
     state: absent
+    backup: true
   when: ansible_system in ('Linux', 'FreeBSD')
   register: unmount_result
   check_mode: true
@@ -311,11 +334,18 @@
       - dest_stat['stat']['exists']
   when: ansible_system in ('FreeBSD', 'Linux')
 
+- name: Verify that the backup return value is empty when checkmode is active
+  ansible.builtin.assert:
+    that:
+      - unmount_result.backup_file == ""
+  when: ansible_system in ('FreeBSD', 'Linux')
+
 # unmount
 - name: Unmount the bind mount
   ansible.posix.mount:
     name: '{{ output_dir }}/mount_dest'
     state: absent
+    backup: true
   when: ansible_system in ('Linux', 'FreeBSD')
   register: unmount_result
 
@@ -338,6 +368,13 @@
       - not mountpoint_stat['stat']['exists']
       - not dest_stat['stat']['exists']
   when: ansible_system in ('FreeBSD', 'Linux')
+
+- name: Verify that the backup return value is not empty when backups are enabled
+  ansible.builtin.assert:
+    that:
+      - unmount_result.backup_file | length > 0
+  when: ansible_system in ('FreeBSD', 'Linux')
+
 
 # unmount (absent_keep_mountpoint)
 - name: Bind mount a filesystem (Linux)
@@ -363,6 +400,7 @@
   ansible.posix.mount:
     name: '{{ output_dir }}/mount_dest'
     state: absent_keep_mountpoint
+    backup: false
   when: ansible_system in ('Linux', 'FreeBSD')
   register: unmount_result
 
@@ -385,6 +423,12 @@
       - unmount_result['changed']
       - mountpoint_stat['stat']['exists']
       - not dest_stat['stat']['exists']
+  when: ansible_system in ('FreeBSD', 'Linux')
+
+- name: Verify that the backup return value is empty when backups are disabled
+  ansible.builtin.assert:
+    that:
+      - unmount_result.backup_file == ""
   when: ansible_system in ('FreeBSD', 'Linux')
 
 # SWAP #############################################################
